@@ -17,6 +17,7 @@ venv/
 # Local data, models, and runtime artifacts
 data/*
 !data/.gitkeep
+!data/example_panel.csv
 *.db
 *.sqlite*
 artifacts/
