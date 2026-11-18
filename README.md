@@ -2,6 +2,8 @@
 
 A local portfolio demo for serving a versioned lab-panel model, reviewing its output, and monitoring the service. All training and demo panels are synthetic. The score represents a simulated review label. This independent project has no clinical use or Mayo Clinic affiliation.
 
+This first version is a minimum viable product (MVP). It is small enough to run locally and complete the full workflow from importing a synthetic panel to reviewing a result and rolling back a model. See the [English–Chinese glossary](docs/glossary.md) for terms used in the interface, video, and slides.
+
 ## Run locally
 
 With Docker Compose:
@@ -10,7 +12,7 @@ With Docker Compose:
 docker compose up --build --wait
 ```
 
-Open the [review UI](http://127.0.0.1:8501) and [API documentation](http://127.0.0.1:8000/docs). `docker compose down` stops the services and retains the SQLite volume. `docker compose down -v` also deletes the demo records.
+Open the [review user interface (UI)](http://127.0.0.1:8501) and [application programming interface (API) documentation](http://127.0.0.1:8000/docs). `docker compose down` stops the services and retains the SQLite volume. `docker compose down -v` also deletes the demo records.
 
 To run without Docker, use Python 3.11. In the current checkout the parent path contains a colon, so create the virtual environment outside the checkout. From the repository root:
 
@@ -30,12 +32,12 @@ source "$HOME/.venvs/lab-workbench/bin/activate"
 PYTHONPATH=src python -m streamlit run src/lab_workbench/ui.py --server.address=127.0.0.1
 ```
 
-Training is a one-time step for each artifact directory. Use `--output` to train into a new directory, and set `MODEL_DIR` when serving it. Use `WORKBENCH_DB` to isolate demo runs. By default the service uses `artifacts/models` and `data/workbench.sqlite3`. The UI uses `WORKBENCH_API` to find the API. Run the local tests with `PYTHONPATH=src python -m pytest -q`. GitHub Actions defines unit and integration tests plus Compose smoke checks.
+Training is a one-time step for each artifact directory. Use `--output` to train into a new directory, and set `MODEL_DIR` when serving it. Use `WORKBENCH_DB` to isolate demo runs. By default the service uses `artifacts/models` and `data/workbench.sqlite3`. The UI uses `WORKBENCH_API` to find the API. Run the local tests with `PYTHONPATH=src python -m pytest -q`. GitHub Actions runs continuous integration (CI), which checks the code with tests and verifies that both Compose services start.
 
 ## Walkthrough
 
-1. In **Predict**, submit the baseline panel or upload [example_panel.csv](data/example_panel.csv) and choose row 1. Submit it again with the same request ID to replay the saved result.
-2. Try the out-of-range panel and watch the API reject it with HTTP 422. Choose **New request ID** before scoring a different valid panel.
+1. In **Predict**, submit the baseline panel or upload the [comma-separated values (CSV) example](data/example_panel.csv) and choose row 1. Submit it again with the same request identifier (ID) to replay the saved result.
+2. Try the out-of-range panel and watch the API reject it with Hypertext Transfer Protocol (HTTP) status 422, which indicates that the submitted input failed validation. Choose **New request ID** before scoring a different valid panel.
 3. In **Review**, open the case, flag it with a note and inspect the history.
 4. In **Monitoring**, submit the synthetic shift scenario and compare the white blood cell distribution with the training reference.
 5. In **Models**, compare the holdout metrics, activate `v2`, score a fresh request, then activate `v1` to roll back. Replaying the `v2` request still returns its original version.
