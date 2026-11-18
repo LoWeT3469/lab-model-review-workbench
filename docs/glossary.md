@@ -42,3 +42,12 @@
 | v1 / v2 | Version 1 / Version 2 | 第一个和第二个模型版本。这里分别是逻辑回归和随机森林。切换版本只影响新的预测请求。 |
 
 界面单位中，`g/dL` 指克每分升，`10⁹/L` 指每升十亿个细胞，`fL` 指飞升，也就是 10⁻¹⁵ 升。模型字段名中的 `WBC` 指 *white blood cells*（白细胞），`MCV` 指 *mean corpuscular volume*（平均红细胞体积）。
+
+## Model adaptation and routing 模型适应与请求分流
+
+| Term | Full name | 在本项目中的意思 |
+| --- | --- | --- |
+| PNN | Progressive Neural Networks | 渐进式神经网络。训练新任务时保留旧网络列的参数，并增加新列。它为保留现行模型、同时验证新数据上的表现提供了设计参考。 |
+| Cascade | Two-stage model cascade | 两阶段模型级联。第一阶段先评分，部分记录按规则进入第二阶段。本项目在离线回放中统计分流量和标签一致率。 |
+| Label feedback loop | Model-influenced label feedback loop | 标签反馈循环。现行模型的建议可能影响以后用来评估或训练的标签，从而改变版本比较结论。 |
+| Offline replay | Offline replay evaluation | 离线回放评估。对同一批合成输入重放固定模型的预测，再用不同来源的标签比较结果。 |

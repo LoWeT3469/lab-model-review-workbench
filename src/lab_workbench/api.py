@@ -18,8 +18,9 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+from .evaluation import evaluate_replay
 from .monitor import snapshot
-from .schema import Activation, FEATURES, PredictionRequest, Review
+from .schema import Activation, FEATURES, PredictionRequest, REVIEW_THRESHOLD, Review
 from .store import Store, decode_row, encode, utc_now
 
 logger = logging.getLogger(__name__)
@@ -136,7 +137,7 @@ def create_app(model_dir: Path | None = None, database: Path | None = None):
                 "model_sha256": app.state.manifest["versions"][version]["sha256"],
                 "panel": canonical,
                 "score": score,
-                "suggested_review": int(score >= 0.5),
+                "suggested_review": int(score >= REVIEW_THRESHOLD),
             }
             db.execute(
                 """INSERT INTO predictions VALUES
@@ -215,6 +216,10 @@ def create_app(model_dir: Path | None = None, database: Path | None = None):
                     VALUES (?, ?, ?, ?)
                 """, (utc_now(), previous, body.version, body.reason))
         return {"active_version": body.version, "changed": previous != body.version}
+
+    @app.get("/evaluation/replay")
+    def evaluation_replay():
+        return evaluate_replay(app.state.models)
 
     @app.get("/monitor")
     def monitor(hours: int = Query(default=24, ge=1, le=168)):

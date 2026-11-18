@@ -14,6 +14,8 @@ FEATURES = {
     "mcv_fl": ("Mean corpuscular volume", "fL", 20, 200),
 }
 
+REVIEW_THRESHOLD = 0.50
+
 AUDIENCE_NOTICE = (
     "Independent educational prototype using synthetic data. "
     "The score represents a simulated review label and has no clinical use."

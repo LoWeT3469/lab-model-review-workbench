@@ -130,3 +130,21 @@ def test_shift_uses_only_unique_successful_inputs(client):
     assert wbc["status"] == "shift signal"
     assert metrics["attempts"] == 60
     assert metrics["unique_predictions"] == 30
+
+
+def test_offline_replay_keeps_label_sources_and_live_state_separate(client):
+    case = send(client).json()
+    report = client.get("/evaluation/replay").json()
+    assert report == client.get("/evaluation/replay").json()
+    baseline, shifted = report["cohorts"]
+    for cohort in (baseline, shifted):
+        assert 0 < cohort["escalated"] < cohort["rows"]
+        assert 0 < cohort["copied_labels"] < cohort["rows"]
+        assert [row["policy"] for row in cohort["agreement"]] == [
+            "v1 only", "v2 only", "Two-stage cascade",
+        ]
+    first, second, _ = baseline["agreement"]
+    assert first["independent_reference"] < second["independent_reference"]
+    assert first["model_influenced"] > second["model_influenced"]
+    assert client.get("/health").json()["active_version"] == case["model_version"]
+    assert client.get("/monitor").json()["attempts"] == 1

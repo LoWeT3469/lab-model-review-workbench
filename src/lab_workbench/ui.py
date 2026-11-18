@@ -10,7 +10,7 @@ import pandas as pd
 import requests
 import streamlit as st
 
-from lab_workbench.schema import AUDIENCE_NOTICE, FEATURES
+from lab_workbench.schema import AUDIENCE_NOTICE, FEATURES, REVIEW_THRESHOLD
 from lab_workbench.synthetic import generate
 
 API = os.getenv("WORKBENCH_API", "http://127.0.0.1:8000")
@@ -87,7 +87,7 @@ def prediction_details(result):
     st.caption(f"Saved {result['created_at']} UTC · Request {result['request_id']}")
     with st.expander("Artifact checksum"):
         st.code(result["model_sha256"], language=None)
-    st.caption("The demo threshold is 0.50. A blank optional value uses the training median.")
+    st.caption(f"The demo threshold is {REVIEW_THRESHOLD:.2f}. A blank optional value uses the training median.")
 
 
 def predict_page():
@@ -219,6 +219,33 @@ def monitor_page():
     st.bar_chart(chart, stack=False, y_label="Fraction of observations")
 
 
+def replay_panel():
+    st.subheader("Offline replay")
+    st.caption("Synthetic evaluation of label feedback and two-stage routing. The live prediction uses the active release.")
+    if not st.button("Run offline replay"):
+        return
+    report = call("GET", "/evaluation/replay")
+    if report is None:
+        return
+    low, high = report["escalation_band"]
+    st.write(f"The first model routes scores from {low:.2f} up to {high:.2f} to the second model.")
+    st.caption("The replay scores both models on every case to compare the three policies on shared inputs.")
+    for cohort in report["cohorts"]:
+        st.markdown(f"**{cohort['name']}**")
+        st.caption(
+            f"{cohort['rows']} panels · {cohort['copied_labels']} comparison labels copied from v1"
+            f" · {cohort['escalated']} would route to v2"
+        )
+        st.dataframe([
+            {
+                "Policy": row["policy"],
+                "Agreement with independent labels": f"{row['independent_reference']:.1%}",
+                "Agreement with model-influenced labels": f"{row['model_influenced']:.1%}",
+            }
+            for row in cohort["agreement"]
+        ], hide_index=True, use_container_width=True)
+
+
 def models_page():
     st.header("Model releases")
     data = call("GET", "/models")
@@ -248,6 +275,7 @@ def models_page():
     st.subheader("Activation history")
     st.dataframe(pd.DataFrame(data["history"])[["created_at", "previous_version", "version", "reason"]],
                  hide_index=True, use_container_width=True)
+    replay_panel()
 
 
 def main():
