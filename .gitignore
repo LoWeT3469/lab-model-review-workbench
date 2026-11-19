@@ -24,7 +24,7 @@ artifacts/
 logs/
 
 # Local working references
-/REFs/
+/0-REFs/
 
 # Editor / OS
 .DS_Store

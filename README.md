@@ -43,9 +43,9 @@ Training is a one-time step for each artifact directory. Use `--output` to train
 5. In **Models**, run **Offline replay**. Compare how label source affects agreement and how many panels the two-stage routing policy would escalate.
 6. Compare the live release metrics, activate `v2`, score a fresh request, then activate `v1` to roll back. Replaying the `v2` request still returns its original version.
 
-See the [five-minute demo](docs/demo.md) and [architecture and data notes](docs/architecture.md).
+See the [five-minute walkthrough and recording guide](docs/demo.md) and [architecture and data notes](docs/architecture.md).
 
 ## Interview materials
 
-- [Captioned overview of the live workflow](docs/lab-workbench-demo.mp4)
-- [Four-slide briefing deck](docs/lab-workbench-slides.pptx)
+- [Expanded interview deck](docs/lab-workbench-interview-deck.pptx)
+- [CARE close-reading guide](docs/care-reading-guide.md)
